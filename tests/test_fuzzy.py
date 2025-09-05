@@ -1,10 +1,20 @@
-from core.trie import Trie
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-def test_autocomplete():
-    trie = Trie()
-    trie.insert("Connor McDavid", {"Player": "Connor McDavid", "Goals": 64})
-    trie.insert("Auston Matthews", {"Player": "Auston Matthews", "Goals": 60})
+import pytest
+from core.fuzzy import fuzzy_search
 
-    results = trie.autocomplete("Co")
-    assert len(results) == 1
-    assert results[0]["Player"] == "Connor McDavid"
+def test_fuzzy_exact_match():
+    players = [{"Player": "Connor McDavid"}, {"Player": "Auston Matthews"}]
+    result = fuzzy_search("Connor McDavid", players)
+    assert result[0]["Player"] == "Connor McDavid"
+
+def test_fuzzy_typo_match():
+    players = [{"Player": "Connor McDavid"}, {"Player": "Auston Matthews"}]
+    result = fuzzy_search("Conor McDvaid", players, threshold=0.7)
+    assert result[0]["Player"] == "Connor McDavid"
+
+def test_fuzzy_no_match():
+    players = [{"Player": "Connor McDavid"}, {"Player": "Auston Matthews"}]
+    result = fuzzy_search("Sidney Crosby", players, threshold=0.8)
+    assert result == []
